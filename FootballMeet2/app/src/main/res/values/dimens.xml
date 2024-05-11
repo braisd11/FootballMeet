@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="titleSize">25sp</dimen>
+    <dimen name="width_btn">150dp</dimen>
+    <dimen name="width_btnPeq">100dp</dimen>
+    <dimen name="width_etSignIn">300dp</dimen>
+</resources>

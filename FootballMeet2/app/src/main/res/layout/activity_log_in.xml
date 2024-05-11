@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/txt_iniciar_sesion"
+        android:textColor="@color/white"
+        android:textSize="40sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="Usuario:"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/et_userLogIn"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:hint="Usuario"
+            android:padding="5dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="Contraseña"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/et_passwordLogIn"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:inputType="textPassword"
+            android:hint="Contraseña:"
+            android:padding="5dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp">
+
+        <Button
+            android:id="@+id/btn_acept"
+            android:layout_width="@dimen/width_btnPeq"
+            android:layout_height="wrap_content"
+            android:text="@string/txt_acept"
+            android:layout_marginEnd="20dp"/>
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="@dimen/width_btnPeq"
+            android:layout_height="wrap_content"
+            android:text="@string/txt_cancel"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>

@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">FootballMeet</string>
+    <string name="appName">FOOTBALLMEET</string>
+    <string name="txt_iniciarSesion">Iniciar Sesión</string>
+    <string name="txt_salir">Salir</string>
+    <string name="txt_registrarse">Registarse</string>
+    <string name="txt_iniciar_sesion">Iniciar Sesión</string>
+    <string name="txt_acept">Aceptar</string>
+    <string name="txt_cancel">Cancelar</string>
+</resources>
