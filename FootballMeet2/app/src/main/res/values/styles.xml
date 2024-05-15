@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="ButtonStyle" parent="Widget.AppCompat.Button">
-        <item name="android:background">@drawable/rounded_button_background</item>
+        <item name="android:background">@drawable/boton_personalizado_torneo</item>
         <item name="android:elevation">8dp</item>
     </style>
 </resources>
