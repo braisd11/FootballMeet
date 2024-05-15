@@ -15,6 +15,8 @@ import com.example.footballmeet.MainActivity;
 import com.example.footballmeet.R;
 import com.example.footballmeet.bd.MiDBHelper;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,7 +81,7 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
             case R.id.btn_aceptSignIn:
                 if (comprobarCamposSignIn()) {
                     if (!dbHelper.verificarUsuario(user)) {
-                        long result = dbHelper.insertarUsuario(user, email, password, nombre, fecha, telefono);
+                        long result = dbHelper.insertarUsuario(user, email, hashPassword(password), nombre, fecha, telefono);
                         if (result != -1) {
                             MainActivity.showToast(SignIn.this, "Introducido con éxito en la base de datos");
                         } else {
@@ -225,6 +227,32 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
+    }
+
+
+    /////////////////////////////HASHEO CONTRASEÑA//////////////////////////////////////
+
+
+    public static String hashPassword(String password) {
+        try {
+            // Crea una instancia de MessageDigest con el algoritmo SHA-256
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+            // Aplica el hash a la contraseña
+            byte[] hashBytes = digest.digest(password.getBytes());
+
+            // Convierte el hash a una representación hexadecimal
+            StringBuilder builder = new StringBuilder();
+            for (byte b : hashBytes) {
+                builder.append(String.format("%02x", b));
+            }
+
+            return builder.toString();
+        } catch (NoSuchAlgorithmException e) {
+            // Manejar la excepción
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }

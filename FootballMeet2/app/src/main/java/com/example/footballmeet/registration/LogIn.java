@@ -57,7 +57,7 @@ public class LogIn extends AppCompatActivity implements View.OnClickListener {
             case R.id.btn_acept:
 
                 if (comprobarCamposLogIn()) {
-                    if (dbHelper.verificarCredenciales(usuario, password)) {
+                    if (dbHelper.verificarCredenciales(usuario, SignIn.hashPassword(password))) {
                         intent = new Intent();
                         setResult(RESULT_OK, intent);
                     } else {
