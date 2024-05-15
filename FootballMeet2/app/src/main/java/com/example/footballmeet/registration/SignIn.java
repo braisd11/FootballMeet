@@ -62,9 +62,9 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
     }
 
 
-
     /**
      * onClick de los botones
+     *
      * @param v The view that was clicked.
      */
     @Override
@@ -105,9 +105,6 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
     }
 
 
-
-
-
     /**
      * Muestra el DatePicker y escribe la fecha seleccionada en el EditText
      */
@@ -141,6 +138,7 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
 
     /**
      * Comprueba todos los campos
+     *
      * @return true si los campos están correctos
      */
     private boolean comprobarCamposSignIn() {
@@ -174,8 +172,28 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
 
                 }
 
+            } else {
+                if (nombre.trim().isEmpty() || user.trim().isEmpty() || password.trim().isEmpty() ||
+                        email.trim().isEmpty() || telefono.trim().isEmpty() || fecha.trim().isEmpty()) {
+
+                    MainActivity.showToast(this, "Todos los campos deben estar cubiertos");
+
+                } else if (!sonSoloNumeros(telefono)) {
+
+                    MainActivity.showToast(this, "El teléfono sólo pueden ser números");
+
+                } else if (!validarEmail(email)) {
+
+                    MainActivity.showToast(this, "El formato del email no es válido");
+
+                } else {
+
+                    correcto = true;
+
+                }
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         return correcto;
     }
@@ -183,6 +201,7 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
 
     /**
      * Comprueba si solo son números el telefono
+     *
      * @param telefono
      * @return
      */
@@ -197,6 +216,7 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
 
     /**
      * Comprueba si el email tiene el formato correcto
+     *
      * @param email
      * @return true si el formato es correcto
      */
