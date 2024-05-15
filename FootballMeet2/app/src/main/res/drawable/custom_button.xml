@@ -1,0 +1,5 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<declare-styleable android:name="CustomButton">
+    <attr android:name="buttonBackground" android:format="reference"/>
+</declare-styleable>
+</resources>

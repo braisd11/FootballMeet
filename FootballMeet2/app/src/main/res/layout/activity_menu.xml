@@ -1,0 +1,62 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:letterSpacing="0.2"
+        android:text="@string/appName"
+        android:textColor="@color/black"
+        android:textSize="@dimen/titleSize"
+        android:textStyle="bold" />
+
+    <GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="2">
+
+        <Button
+            style="@style/ButtonStyle"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:background="@drawable/img_torneo"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="Botón 1" />
+
+        <Button
+            style="@style/ButtonStyle"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:background="@drawable/img_torneo"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="Botón 2" />
+
+        <Button
+            style="@style/ButtonStyle"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:background="@drawable/img_torneo"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="Botón 3" />
+
+        <Button
+            style="@style/ButtonStyle"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:background="@drawable/img_torneo"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="Botón 4" />
+
+    </GridLayout>
+</LinearLayout>

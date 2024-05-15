@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.footballmeet.bd.MiDBHelper;
+import com.example.footballmeet.menu.Menu;
 import com.example.footballmeet.registration.LogIn;
 import com.example.footballmeet.registration.SignIn;
 
@@ -77,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
 
                 showToast(this, "Iniciado correctamente");
+                Intent intent = new Intent(this, Menu.class);
+                startActivity(intent);
 
             } else if (resultCode == RESULT_CANCELED) {
 
