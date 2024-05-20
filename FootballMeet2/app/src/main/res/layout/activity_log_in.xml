@@ -25,16 +25,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="Usuario:"
+            android:text="Email:"
             android:textColor="@color/white"
             android:textSize="20sp" />
 
         <EditText
-            android:id="@+id/et_userLogIn"
+            android:id="@+id/et_emailLogIn"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:background="@color/white"
-            android:hint="Usuario"
+            android:hint="Email"
             android:padding="5dp"/>
 
         <TextView

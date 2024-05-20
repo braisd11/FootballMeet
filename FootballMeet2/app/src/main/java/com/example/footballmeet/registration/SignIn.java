@@ -1,5 +1,6 @@
 package com.example.footballmeet.registration;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
@@ -13,7 +14,15 @@ import android.widget.EditText;
 
 import com.example.footballmeet.MainActivity;
 import com.example.footballmeet.R;
-import com.example.footballmeet.bd.MiDBHelper;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -28,14 +37,11 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
     private EditText et_newNombre, et_newUser, et_newPassword, et_newTelefono, et_newEmail, et_newFecha;
 
     private String nombre, user, password, email, telefono, fecha;
-    private MiDBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
-
-        dbHelper = new MiDBHelper(this);
 
         finds();
 
@@ -64,14 +70,8 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
     }
 
 
-    /**
-     * onClick de los botones
-     *
-     * @param v The view that was clicked.
-     */
     @Override
     public void onClick(View v) {
-        Intent intent = null;
         switch (v.getId()) {
 
             case R.id.btn_datePickerDialog:
@@ -80,36 +80,53 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
 
             case R.id.btn_aceptSignIn:
                 if (comprobarCamposSignIn()) {
-                    if (!dbHelper.verificarUsuario(user)) {
-                        long result = dbHelper.insertarUsuario(user, email, hashPassword(password), nombre, fecha, telefono);
-                        if (result != -1) {
-                            MainActivity.showToast(SignIn.this, "Introducido con éxito en la base de datos");
-                        } else {
-                            MainActivity.showToast(SignIn.this, "No se pudo introducir el dato correctamente");
-                        }
-                        intent = new Intent();
-                        setResult(RESULT_OK, intent);
-                    } else {
-                        MainActivity.showToast(SignIn.this, "Ya existe este nombre de usuario");
-                    }
+                    final String userEmail = email;
+                    final String userPassword = password;
+
+                    FirebaseAuth.getInstance().createUserWithEmailAndPassword(userEmail, userPassword)
+                            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if (task.isSuccessful()) {
+                                        // Usuario creado exitosamente en Firebase Authentication
+                                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("Usuarios");
+                                        DatabaseReference newUserRef = usersRef.child(userId);
+
+                                        newUserRef.child("email").setValue(userEmail);
+                                        newUserRef.child("password").setValue(hashPassword(userPassword));
+                                        newUserRef.child("nombre").setValue(nombre);
+                                        newUserRef.child("fecha").setValue(fecha);
+                                        newUserRef.child("telefono").setValue(telefono);
+
+                                        MainActivity.showToast(SignIn.this, "Usuario creado y registrado exitosamente");
+                                        Intent intent = new Intent();
+                                        setResult(RESULT_OK, intent);
+                                        finish();
+                                    } else {
+                                        // Error al crear usuario en Firebase Authentication
+                                        MainActivity.showToast(SignIn.this, "Error al crear usuario: " + task.getException().getMessage());
+                                    }
+                                }
+                            });
                 }
                 break;
 
+
             case R.id.btn_cancelSignIn:
-                intent = new Intent();
+                // Crear el Intent y establecer el resultado
+                Intent intent = new Intent();
                 setResult(RESULT_CANCELED, intent);
+                finish();
                 break;
 
-        }
-        if (intent != null) {
-            finish();
+            default:
+                throw new IllegalStateException("Unexpected value: " + v.getId());
         }
     }
 
 
-    /**
-     * Muestra el DatePicker y escribe la fecha seleccionada en el EditText
-     */
+
     private void mostrarDatePicker() {
         // Obtener la fecha actual
         final Calendar calendar = Calendar.getInstance();
@@ -135,14 +152,6 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
     }
 
 
-    /////////////////////////////VALIDACIONES//////////////////////////////////////
-
-
-    /**
-     * Comprueba todos los campos
-     *
-     * @return true si los campos están correctos
-     */
     private boolean comprobarCamposSignIn() {
         boolean correcto = false;
 
@@ -201,12 +210,6 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
     }
 
 
-    /**
-     * Comprueba si solo son números el telefono
-     *
-     * @param telefono
-     * @return
-     */
     public boolean sonSoloNumeros(String telefono) {
         for (int i = 0; i < telefono.length(); i++) {
             if (!Character.isDigit(telefono.charAt(i))) {
@@ -216,21 +219,13 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
         return true;
     }
 
-    /**
-     * Comprueba si el email tiene el formato correcto
-     *
-     * @param email
-     * @return true si el formato es correcto
-     */
+
     public boolean validarEmail(String email) {
         String regex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$";
         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
     }
-
-
-    /////////////////////////////HASHEO CONTRASEÑA//////////////////////////////////////
 
 
     public static String hashPassword(String password) {
@@ -256,3 +251,4 @@ public class SignIn extends AppCompatActivity implements View.OnClickListener {
     }
 
 }
+

@@ -16,6 +16,8 @@ import com.example.footballmeet.bd.MiDBHelper;
 import com.example.footballmeet.menu.Menu;
 import com.example.footballmeet.registration.LogIn;
 import com.example.footballmeet.registration.SignIn;
+import com.google.firebase.Firebase;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -91,6 +93,11 @@ public class MainActivity extends AppCompatActivity {
 
     public static void showToast(Context context, String text) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+    }
+
+    public static FirebaseDatabase initFirebase(){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        return database;
     }
 
 }

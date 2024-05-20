@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "447256846498",
+    "firebase_url": "https://footballmeet-d5415-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "footballmeet-d5415",
+    "storage_bucket": "footballmeet-d5415.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447256846498:android:df28a6ba7e8e6787b3b7fb",
+        "android_client_info": {
+          "package_name": "com.example.footballmeet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY6N0cVdHINpSDGz4dX_xIRXQjX8p34Ds"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
