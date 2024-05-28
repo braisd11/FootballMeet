@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.footballmeet">
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
@@ -14,18 +16,47 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FootballMeet"
         tools:targetApi="31">
+
+        <!--
+             TODO: Before you run your application, you need a Google Maps API key.
+
+             To get one, follow the directions here:
+
+                https://developers.google.com/maps/documentation/android-sdk/get-api-key
+
+             Once you have your API key (it starts with "AIza"), define a new property in your
+             project's local.properties file (e.g. MAPS_API_KEY=Aiza...), and replace the
+             "YOUR_API_KEY" string in this file with "${MAPS_API_KEY}".
+        -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="YOUR_API_KEY" />
+
+        <activity
+            android:name=".partidos.SeleccionarUbicacion"
+            android:exported="false"
+            android:label="@string/title_activity_seleccionar_ubicacion"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".partidos.crearPartido"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".menu.Partidos"
+            android:exported="false"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".menu.Menu"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".registration.LogIn"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".registration.SignIn"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

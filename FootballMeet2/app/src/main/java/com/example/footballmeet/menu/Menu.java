@@ -58,8 +58,7 @@ public class Menu extends AppCompatActivity {
 
         switch (view.getId()) {
             case R.id.btn_partidosMenu:
-                // Lógica para partidos
-                finish();
+                intent = new Intent(this, Partidos.class);
                 break;
 
             case R.id.btn_perfilMenu:

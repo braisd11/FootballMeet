@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundGreen"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Crear nuevo Partido"
+        android:textColor="@color/black"
+        android:textSize="40sp" />
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_dateMatch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:layout_marginEnd="10dp"
+            android:text="Fecha"
+            android:onClick="onClickBtnNewMatch"/>
+
+        <EditText
+            android:id="@+id/et_newFechaMatch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="5dp"
+            android:background="@color/white"
+            android:hint="Fecha Partido"
+            android:inputType="datetime"
+            android:padding="5dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_timeMatch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:layout_marginEnd="10dp"
+            android:text="Hora"
+            android:onClick="onClickBtnNewMatch"/>
+
+        <EditText
+            android:id="@+id/et_newTimeMatch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="5dp"
+            android:background="@color/white"
+            android:hint="Hora partido"
+            android:inputType="datetime"
+            android:padding="5dp" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/et_newMatchDescripcion"
+        android:layout_width="@dimen/width_etSignIn"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@color/white"
+        android:lineBreakStyle="loose"
+        android:hint="Descripción"
+        android:padding="5dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <EditText
+            android:id="@+id/et_newCapacidadJugadores"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="30dp"
+            android:background="@color/white"
+            android:hint="Capacidad"
+            android:inputType="number"
+            android:padding="5dp" />
+
+        <EditText
+            android:id="@+id/et_newPrecioMatch"
+            android:layout_width="@dimen/width_btnPeq"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:background="@color/white"
+            android:hint="Precio"
+            android:inputType="numberDecimal"
+            android:padding="5dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_selectLocation"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:text="Seleccionar Ubicación"
+            android:onClick="onClickBtnNewMatch"/>
+
+        <Button
+            android:id="@+id/btn_selectImage"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar Imagen"
+            android:onClick="onClickBtnNewMatch"/>
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_aceptNewMatch"
+            android:layout_width="@dimen/width_btnPeq"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:text="@string/txt_acept"
+            android:onClick="onClickBtnNewMatch"/>
+
+        <Button
+            android:id="@+id/btn_cancelNewMatch"
+            android:layout_width="@dimen/width_btnPeq"
+            android:layout_height="wrap_content"
+            android:text="@string/txt_cancel"
+            android:onClick="onClickBtnNewMatch"/>
+
+    </LinearLayout>
+
+</LinearLayout>
