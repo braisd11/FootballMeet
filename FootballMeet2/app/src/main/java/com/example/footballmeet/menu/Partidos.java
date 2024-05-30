@@ -6,8 +6,11 @@ import android.os.Bundle;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.footballmeet.MainActivity;
 import com.example.footballmeet.R;
+import com.example.footballmeet.databinding.ActivityMainBinding;
 import com.example.footballmeet.partidos.Partido;
 import com.example.footballmeet.partidos.crearPartido;
 import com.firebase.ui.database.FirebaseListAdapter;
@@ -26,14 +30,20 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class Partidos extends AppCompatActivity {
 
     private ListView listViewPartidos;
-    private TextView textViewNoData, textView_fechaSeleccionada;
+    private TextView textViewNoData, textView_fechaDesde, textView_fechaHasta;
     private DatabaseReference databaseReference;
     private FirebaseListAdapter<Partido> adapter;
+    private LinearLayout ly_Fechas;
+    private Switch switchFecha_partidos;
 
 
     @Override
@@ -43,7 +53,14 @@ public class Partidos extends AppCompatActivity {
 
         listViewPartidos = findViewById(R.id.custom_listView);
         textViewNoData = findViewById(R.id.textViewNoData);
-        textView_fechaSeleccionada = findViewById(R.id.textView_fechaSeleccionada);
+        ly_Fechas = findViewById(R.id.ly_Fechas);
+        switchFecha_partidos = findViewById(R.id.switchFecha_partidos);
+        textView_fechaDesde = findViewById(R.id.textView_fechaDesde);
+        textView_fechaHasta = findViewById(R.id.textView_fechaHasta);
+
+        fechaActual();
+
+        listenerSwicth();
 
         // Inicializar Firebase Database
         databaseReference = FirebaseDatabase.getInstance().getReference("Partidos");
@@ -90,6 +107,24 @@ public class Partidos extends AppCompatActivity {
         });
     }
 
+
+
+    private void listenerSwicth() {
+        switchFecha_partidos.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (buttonView.isChecked()){
+                    ly_Fechas.setVisibility(View.VISIBLE);
+                } else {
+                    textView_fechaDesde.setText("");
+                    textView_fechaHasta.setText("");
+                    ly_Fechas.setVisibility(View.GONE);
+                }
+            }
+        });
+
+    }
+
     @NonNull
     private FirebaseListOptions<Partido> getPartidoFirebaseListOptions() {
         // Configurar opciones para el adaptador FirebaseListAdapter
@@ -122,15 +157,21 @@ public class Partidos extends AppCompatActivity {
     public void onClickBtnPartidos(View view) {
 
         switch (view.getId()){
-            case R.id.fecha_partidos:
-                mostrarDatePicker();
+            case R.id.fecha_desde:
+
+                mostrarDatePicker(1);
+                break;
+
+            case R.id.fecha_hasta:
+
+                mostrarDatePicker(2);
                 break;
 
         }
 
     }
 
-    private void mostrarDatePicker() {
+    private void mostrarDatePicker(int tipo) {
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
@@ -141,16 +182,91 @@ public class Partidos extends AppCompatActivity {
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 month++; // Month is 0-based in Calendar
                 String fechaSeleccionada = String.format("%02d/%02d/%d", dayOfMonth, month, year);
-                textView_fechaSeleccionada.setText(fechaSeleccionada.toString());
 
-                // Aquí actualizas la consulta con la nueva fecha seleccionada
-                Query newQuery = databaseReference.orderByChild("fecha").equalTo(fechaSeleccionada);
-                adapter.notifyDataSetChanged();
+                if (tipo == 1){
+                    textView_fechaDesde.setText(fechaSeleccionada);
+                } else if (tipo == 2){
+                    textView_fechaHasta.setText(fechaSeleccionada);
+                }
+
+                actualizarFechas(textView_fechaDesde.toString(), textView_fechaHasta.toString());
+
             }
         }, year, month, day);
+
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
 
         datePickerDialog.show();
     }
 
+    private void actualizarFechas(String desde, String hasta) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("partidos");
 
+        long fechaDesde = convertStringToDateInMillis(desde);
+
+        if (hasta == "" || hasta.isEmpty()) {
+            // Si no se proporciona una fecha de fin, buscar hasta el último partido registrado
+            ref.orderByChild("timestamp")
+                    .startAt(fechaDesde)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            procesarPartidos(dataSnapshot);
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {}
+                    });
+            return;
+        }
+
+        long fechaHasta = convertStringToDateInMillis(hasta);
+
+        // Si se proporcionan ambas fechas, buscar partidos entre esas fechas
+        ref.orderByChild("timestamp")
+                .startAt(fechaDesde)
+                .endAt(fechaHasta)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        procesarPartidos(dataSnapshot);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+    }
+
+    private void procesarPartidos(DataSnapshot dataSnapshot) {
+        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+            // Procesa cada partido
+        }
+    }
+
+
+    private void fechaActual() {
+        Date myDate = new Date();
+
+        textView_fechaDesde.setText(new SimpleDateFormat("dd/MM/yyyy").format(myDate));
+    }
+
+
+    /**
+     * Convierte una fecha en String a milisegundos desde la época.
+     *
+     * @param dateString La fecha en formato String.
+     * @return El valor en milisegundos desde la época, o -1 si ocurre un error de parseo.
+     */
+    public static long convertStringToDateInMillis(String dateString) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        try {
+            Date date = sdf.parse(dateString);
+            if (date != null) {
+                return date.getTime();
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
 }

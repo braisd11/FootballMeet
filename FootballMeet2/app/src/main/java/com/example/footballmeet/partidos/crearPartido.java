@@ -19,28 +19,36 @@ import android.widget.TimePicker;
 import com.example.footballmeet.MainActivity;
 import com.example.footballmeet.R;
 import com.example.footballmeet.registration.SignIn;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class crearPartido extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int REQUEST_SELECT_LOCATION = 2;
-    private Uri selectedImageUri = null;
 
-    private String ubicacion;
 
-    private TextView et_newTimeMatch, et_newFechaMatch;
+    private Uri selectedImageUri;
+
+    private TextView et_newTimeMatch, et_newFechaMatch, tv_location, tv_image;
 
     private EditText etFechaPartido;
     private EditText etHoraPartido;
     private EditText etDescripcion;
     private EditText etCapacidad;
     private EditText etPrecio;
+    private String latitude;
+    private String longitude;
+    private String ubicacion = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +61,8 @@ public class crearPartido extends AppCompatActivity {
     private void finds() {
         et_newTimeMatch = findViewById(R.id.et_newTimeMatch);
         et_newFechaMatch = findViewById(R.id.et_newFechaMatch);
+        tv_location = findViewById(R.id.tv_location);
+        tv_image = findViewById(R.id.tv_image);
 
         etFechaPartido = findViewById(R.id.et_newFechaMatch);
         etHoraPartido = findViewById(R.id.et_newTimeMatch);
@@ -111,7 +121,6 @@ public class crearPartido extends AppCompatActivity {
     }
 
 
-
     private void crearPartido() {
         String fechaPartido = etFechaPartido.getText().toString().trim();
         String horaPartido = etHoraPartido.getText().toString().trim();
@@ -119,8 +128,7 @@ public class crearPartido extends AppCompatActivity {
         String capacidadStr = etCapacidad.getText().toString().trim();
         String precioStr = etPrecio.getText().toString().trim();
 
-        if (TextUtils.isEmpty(fechaPartido) || TextUtils.isEmpty(horaPartido) ||
-                TextUtils.isEmpty(descripcion) || TextUtils.isEmpty(capacidadStr) ||
+        if (TextUtils.isEmpty(fechaPartido) || TextUtils.isEmpty(horaPartido) || TextUtils.isEmpty(capacidadStr) ||
                 TextUtils.isEmpty(precioStr)) {
             MainActivity.showToast(this, "Por favor completa todos los campos");
             return;
@@ -132,8 +140,13 @@ public class crearPartido extends AppCompatActivity {
         // Aquí puedes crear el partido con los datos ingresados
         // Puedes llamar a un método para guardar el partido en la base de datos, por ejemplo
 
-        // Lógica para guardar el partido en la base de datos
-        guardarPartidoEnBaseDeDatos(fechaPartido,horaPartido,descripcion,capacidad,precio, selectedImageUri.toString(), ubicacion);
+
+        if (selectedImageUri == null){
+            guardarPartidoEnBaseDeDatos(fechaPartido, horaPartido, descripcion, capacidad, precio, null, ubicacion);
+        } else{
+            guardarPartidoEnBaseDeDatos(fechaPartido, horaPartido, descripcion, capacidad, precio, selectedImageUri.toString(), ubicacion);
+        }
+
 
         MainActivity.showToast(this, "Partido creado exitosamente");
         finish(); // Finalizar la actividad actual
@@ -200,6 +213,8 @@ public class crearPartido extends AppCompatActivity {
             }
         }, year, month, day);
 
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+
         datePickerDialog.show();
     }
 
@@ -211,13 +226,39 @@ public class crearPartido extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             // Obtener la URI de la imagen seleccionada
             selectedImageUri = data.getData();
+
+            tv_image.setText(selectedImageUri.toString());
+            tv_image.setVisibility(View.VISIBLE);
+
         } else if (requestCode == REQUEST_SELECT_LOCATION && resultCode == RESULT_OK) {
             // Extraer la ubicación seleccionada desde el intent data
-            ubicacion = data.getStringExtra("ubicacion");
+            latitude = data.getStringExtra("latitude");
+            longitude = data.getStringExtra("longitude");
+
+            // Transformar las coordenadas en un objeto LatLng
+            ubicacion = latitude + ";" + longitude;
+
+            tv_location.setText(ubicacion.toString());
+            tv_location.setVisibility(View.VISIBLE);
+
+            MainActivity.showToast(this, ubicacion);
 
             // Hacer lo que necesites con la ubicación seleccionada
             // Por ejemplo, mostrarla en un TextView o guardarla en una variable
         }
     }
 
+
+    /*public long convertStringToDateInMillis(String dateString) {
+        SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
+        try {
+            Date date = sdf.parse(dateString);
+            if (date != null) {
+                return date.getTime();
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }*/
 }

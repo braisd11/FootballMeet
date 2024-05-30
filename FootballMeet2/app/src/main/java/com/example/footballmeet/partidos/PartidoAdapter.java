@@ -1,8 +1,6 @@
 package com.example.footballmeet.partidos;
 
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -12,11 +10,8 @@ import com.bumptech.glide.Glide;
 import com.example.footballmeet.R;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.firebase.ui.database.FirebaseListOptions;
-import com.google.firebase.database.Query;
 
 public class PartidoAdapter extends FirebaseListAdapter<Partido> {
-
-    private Query query;
 
     public PartidoAdapter(@NonNull FirebaseListOptions<Partido> options) {
         super(options);
@@ -36,17 +31,4 @@ public class PartidoAdapter extends FirebaseListAdapter<Partido> {
         horaTextView.setText(model.getHora());
         Glide.with(v.getContext()).load(model.getImagenUrl()).into(imageView);
     }
-
-    @Override
-    public View getView(int position, View view, ViewGroup viewGroup) {
-        if (view == null) {
-            view = LayoutInflater.from(viewGroup.getContext())
-                    .inflate(R.layout.custom_listview, viewGroup, false);
-        }
-        populateView(view, getItem(position), position);
-        return view;
-    }
-
-
-    
 }
