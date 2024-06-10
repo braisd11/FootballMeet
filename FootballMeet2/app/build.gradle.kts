@@ -39,12 +39,14 @@ android {
 dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("com.squareup.picasso:picasso:2.71828")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.firebaseui:firebase-ui-auth:8.0.0")
     implementation("com.firebaseui:firebase-ui-database:8.0.0")
     implementation("com.google.firebase:firebase-database:20.0.5")
     implementation("com.github.bumptech.glide:glide:4.12.0")
     implementation("com.google.android.gms:play-services-maps:18.0.1")
+    implementation("com.google.firebase:firebase-storage:21.0.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")

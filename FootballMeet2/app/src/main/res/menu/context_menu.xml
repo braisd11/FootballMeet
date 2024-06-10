@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_anotarse"
+        android:title="Anotarse al partido" />
+    <item
+        android:id="@+id/menu_favorito"
+        android:title="Añadir a favoritos" />
+</menu>

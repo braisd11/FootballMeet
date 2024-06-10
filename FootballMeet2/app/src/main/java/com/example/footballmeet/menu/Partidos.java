@@ -3,9 +3,11 @@ package com.example.footballmeet.menu;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
@@ -18,22 +20,21 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.footballmeet.MainActivity;
 import com.example.footballmeet.R;
-import com.example.footballmeet.databinding.ActivityMainBinding;
 import com.example.footballmeet.partidos.Partido;
+import com.example.footballmeet.partidos.PartidoAdapter;
 import com.example.footballmeet.partidos.crearPartido;
-import com.firebase.ui.database.FirebaseListAdapter;
-import com.firebase.ui.database.FirebaseListOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class Partidos extends AppCompatActivity {
@@ -41,10 +42,9 @@ public class Partidos extends AppCompatActivity {
     private ListView listViewPartidos;
     private TextView textViewNoData, textView_fechaDesde, textView_fechaHasta;
     private DatabaseReference databaseReference;
-    private FirebaseListAdapter<Partido> adapter;
+    private PartidoAdapter adapter;
     private LinearLayout ly_Fechas;
     private Switch switchFecha_partidos;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,78 +62,50 @@ public class Partidos extends AppCompatActivity {
 
         listenerSwicth();
 
-        // Inicializar Firebase Database
+        // Inicializa la referencia a la base de datos de Firebase
         databaseReference = FirebaseDatabase.getInstance().getReference("Partidos");
 
-        FirebaseListOptions<Partido> options = getPartidoFirebaseListOptions();
-
-        // Inicializar el adaptador con las opciones configuradas
-        adapter = new FirebaseListAdapter<Partido>(options) {
-            @Override
-            protected void populateView(@NonNull View v, @NonNull Partido model, int position) {
-                // Enlazar los datos del modelo a las vistas en el layout personalizado
-                TextView titleTextView = v.findViewById(R.id.item_title);
-                TextView descriptionTextView = v.findViewById(R.id.item_description);
-                TextView fechaTextView = v.findViewById(R.id.item_fecha);
-                TextView horaTextView = v.findViewById(R.id.item_hora);
-
-                titleTextView.setText(model.getUserId());
-                descriptionTextView.setText(model.getDescripcion());
-                fechaTextView.setText(model.getFecha());
-                horaTextView.setText(model.getHora());
-            }
-        };
-
-        // Configurar el adaptador en la ListView
+        // Inicializa el adaptador con una lista vacía de partidos
+        adapter = new PartidoAdapter(this, R.layout.custom_listview, new ArrayList<Partido>());
         listViewPartidos.setAdapter(adapter);
 
-        // Agregar el listener para mostrar el mensaje de "No hay Partidos disponibles"
+        // Escucha los cambios en los datos de Firebase
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    listViewPartidos.setVisibility(View.VISIBLE);
-                    textViewNoData.setVisibility(View.GONE);
-                } else {
-                    listViewPartidos.setVisibility(View.GONE);
-                    textViewNoData.setVisibility(View.VISIBLE);
+                adapter.clear();
+
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Partido partido = dataSnapshot.getValue(Partido.class);
+                    adapter.add(partido);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
+
+        listViewPartidos.setAdapter(adapter);
+        registerForContextMenu(listViewPartidos);
     }
-
-
 
     private void listenerSwicth() {
         switchFecha_partidos.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (buttonView.isChecked()){
+                if (buttonView.isChecked()) {
                     ly_Fechas.setVisibility(View.VISIBLE);
                 } else {
                     textView_fechaDesde.setText("");
                     textView_fechaHasta.setText("");
                     ly_Fechas.setVisibility(View.GONE);
+                    actualizarFechas("","");
                 }
             }
         });
-
     }
 
-    @NonNull
-    private FirebaseListOptions<Partido> getPartidoFirebaseListOptions() {
-        // Configurar opciones para el adaptador FirebaseListAdapter
-        FirebaseListOptions<Partido> options = new FirebaseListOptions.Builder<Partido>()
-                .setQuery(databaseReference, Partido.class)
-                .setLayout(R.layout.custom_listview)
-                .build();
-        return options;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
@@ -154,21 +126,46 @@ public class Partidos extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.context_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()) {
+            case R.id.menu_anotarse:
+                anotarseAlPartido(info.position);
+                return true;
+            case R.id.menu_favorito:
+                anhadirAFavoritos(info.position);
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
+
+
+    private void anotarseAlPartido(int position) {
+        MainActivity.showToast(this,"Te has anotado al partido");
+    }
+
+    private void anhadirAFavoritos(int position) {
+        MainActivity.showToast(this,"Partido añadido a favoritos");
+    }
+
     public void onClickBtnPartidos(View view) {
-
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.fecha_desde:
-
                 mostrarDatePicker(1);
                 break;
-
             case R.id.fecha_hasta:
-
                 mostrarDatePicker(2);
                 break;
-
         }
-
     }
 
     private void mostrarDatePicker(int tipo) {
@@ -183,14 +180,13 @@ public class Partidos extends AppCompatActivity {
                 month++; // Month is 0-based in Calendar
                 String fechaSeleccionada = String.format("%02d/%02d/%d", dayOfMonth, month, year);
 
-                if (tipo == 1){
+                if (tipo == 1) {
                     textView_fechaDesde.setText(fechaSeleccionada);
-                } else if (tipo == 2){
+                } else if (tipo == 2) {
                     textView_fechaHasta.setText(fechaSeleccionada);
                 }
 
-                actualizarFechas(textView_fechaDesde.toString(), textView_fechaHasta.toString());
-
+                actualizarFechas(textView_fechaDesde.getText().toString(), textView_fechaHasta.getText().toString());
             }
         }, year, month, day);
 
@@ -200,56 +196,117 @@ public class Partidos extends AppCompatActivity {
     }
 
     private void actualizarFechas(String desde, String hasta) {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("partidos");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Partidos");
 
         long fechaDesde = convertStringToDateInMillis(desde);
 
-        if (hasta == "" || hasta.isEmpty()) {
+        if (hasta.isEmpty()) {
             // Si no se proporciona una fecha de fin, buscar hasta el último partido registrado
-            ref.orderByChild("timestamp")
-                    .startAt(fechaDesde)
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            procesarPartidos(dataSnapshot);
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    List<Partido> listaPartidos = new ArrayList<>();
+
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        Partido partido = snapshot.getValue(Partido.class);
+
+                        long fechaPartido = convertStringToDateInMillis(partido.getFecha());
+
+                        // Comparar con la fecha desde
+                        if (fechaPartido >= fechaDesde) {
+                            listaPartidos.add(partido);
                         }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {}
-                    });
-            return;
-        }
-
-        long fechaHasta = convertStringToDateInMillis(hasta);
-
-        // Si se proporcionan ambas fechas, buscar partidos entre esas fechas
-        ref.orderByChild("timestamp")
-                .startAt(fechaDesde)
-                .endAt(fechaHasta)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        procesarPartidos(dataSnapshot);
                     }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {}
-                });
+                    adapter.clear();
+                    adapter.addAll(listaPartidos);
+                    adapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {}
+            });
+        } else {
+            long fechaHasta = convertStringToDateInMillis(hasta);
+
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    List<Partido> listaPartidos = new ArrayList<>();
+
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        Partido partido = snapshot.getValue(Partido.class);
+
+                        // Convertir la fecha del partido a milisegundos
+                        long fechaPartido = convertStringToDateInMillis(partido.getFecha());
+
+                        // Comparar con la fecha desde y hasta
+                        if (fechaPartido >= fechaDesde && fechaPartido <= fechaHasta) {
+                            listaPartidos.add(partido);
+                        }
+                    }
+
+                    adapter.clear();
+                    adapter.addAll(listaPartidos);
+                    adapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {}
+            });
+        }
+
+        if (!switchFecha_partidos.isChecked()){
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    List<Partido> listaPartidos = new ArrayList<>();
+
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        Partido partido = snapshot.getValue(Partido.class);
+                        listaPartidos.add(partido);
+                    }
+
+                    adapter.clear();
+                    adapter.addAll(listaPartidos);
+                    adapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {}
+            });
+        }
     }
 
     private void procesarPartidos(DataSnapshot dataSnapshot) {
+        List<Partido> listaPartidos = new ArrayList<>();
+
         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-            // Procesa cada partido
+            String partidoId = snapshot.child("partidoId").getValue(String.class);
+            String userId = snapshot.child("userId").getValue(String.class);
+            String fecha = snapshot.child("fecha").getValue(String.class);
+            String hora = snapshot.child("hora").getValue(String.class);
+            String descripcion = snapshot.child("descripcion").getValue(String.class);
+            int capacidad = snapshot.child("capacidad").getValue(Integer.class);
+            double precio = snapshot.child("precio").getValue(Double.class);
+            String imagenUrl = snapshot.child("imagenUrl").getValue(String.class);
+            String ubicacion = snapshot.child("ubicacion").getValue(String.class);
+
+            Partido partido = new Partido(partidoId, userId, fecha, hora, descripcion, capacidad, precio, imagenUrl, ubicacion);
+
+            listaPartidos.add(partido);
         }
+
+        adapter.clear();
+        adapter.addAll(listaPartidos);
+        adapter.notifyDataSetChanged();
     }
 
 
     private void fechaActual() {
         Date myDate = new Date();
-
         textView_fechaDesde.setText(new SimpleDateFormat("dd/MM/yyyy").format(myDate));
     }
-
 
     /**
      * Convierte una fecha en String a milisegundos desde la época.

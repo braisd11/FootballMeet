@@ -1,9 +1,5 @@
 package com.example.footballmeet.partidos;
 
-import static com.example.footballmeet.MainActivity.showToast;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -16,36 +12,39 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.footballmeet.MainActivity;
 import com.example.footballmeet.R;
-import com.example.footballmeet.registration.SignIn;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
 
 public class crearPartido extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int REQUEST_SELECT_LOCATION = 2;
 
-
     private Uri selectedImageUri;
-
-    private TextView et_newTimeMatch, et_newFechaMatch, tv_location, tv_image;
 
     private EditText etFechaPartido;
     private EditText etHoraPartido;
     private EditText etDescripcion;
     private EditText etCapacidad;
     private EditText etPrecio;
+    private TextView tv_image;
+
     private String latitude;
     private String longitude;
     private String ubicacion = "";
@@ -59,16 +58,12 @@ public class crearPartido extends AppCompatActivity {
     }
 
     private void finds() {
-        et_newTimeMatch = findViewById(R.id.et_newTimeMatch);
-        et_newFechaMatch = findViewById(R.id.et_newFechaMatch);
-        tv_location = findViewById(R.id.tv_location);
-        tv_image = findViewById(R.id.tv_image);
-
         etFechaPartido = findViewById(R.id.et_newFechaMatch);
         etHoraPartido = findViewById(R.id.et_newTimeMatch);
         etDescripcion = findViewById(R.id.et_newMatchDescripcion);
         etCapacidad = findViewById(R.id.et_newCapacidadJugadores);
         etPrecio = findViewById(R.id.et_newPrecioMatch);
+        tv_image = findViewById(R.id.tv_image);
     }
 
     public void onClickBtnNewMatch(View view) {
@@ -107,19 +102,14 @@ public class crearPartido extends AppCompatActivity {
     }
 
     private void seleccionarImagen() {
-        // Crear un intent para abrir la galería
         Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
-        // Verificar si hay alguna aplicación que pueda manejar el intent
         if (intent.resolveActivity(getPackageManager()) != null) {
-            // Iniciar la actividad de la galería esperando un resultado
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
         } else {
-            // Mostrar un mensaje de error si no hay aplicaciones disponibles para manejar el intent
             MainActivity.showToast(this, "No hay aplicaciones disponibles para abrir la galería.");
         }
     }
-
 
     private void crearPartido() {
         String fechaPartido = etFechaPartido.getText().toString().trim();
@@ -137,64 +127,96 @@ public class crearPartido extends AppCompatActivity {
         int capacidad = Integer.parseInt(capacidadStr);
         double precio = Double.parseDouble(precioStr);
 
-        // Aquí puedes crear el partido con los datos ingresados
-        // Puedes llamar a un método para guardar el partido en la base de datos, por ejemplo
-
-
-        if (selectedImageUri == null){
-            guardarPartidoEnBaseDeDatos(fechaPartido, horaPartido, descripcion, capacidad, precio, null, ubicacion);
-        } else{
-            guardarPartidoEnBaseDeDatos(fechaPartido, horaPartido, descripcion, capacidad, precio, selectedImageUri.toString(), ubicacion);
+        if (selectedImageUri != null) {
+            guardarImagenEnFirebaseStorage(fechaPartido, horaPartido, descripcion, capacidad, precio);
+        } else {
+            guardarPartidoEnBaseDeDatos(fechaPartido, horaPartido, descripcion, capacidad, precio, null);
         }
 
-
         MainActivity.showToast(this, "Partido creado exitosamente");
-        finish(); // Finalizar la actividad actual
+        finish();
     }
 
-    private void guardarPartidoEnBaseDeDatos(String fechaPartido, String horaPartido, String descripcion, int capacidad, double precio, String imagenUrl, String ubicacion) {
+    private void guardarImagenEnFirebaseStorage(final String fechaPartido, final String horaPartido, final String descripcion, final int capacidad, final double precio) {
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("images");
+
+        final StorageReference imageRef = storageRef.child(selectedImageUri.getLastPathSegment());
+
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
+
+            UploadTask uploadTask = imageRef.putStream(inputStream);
+
+            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    obtenerUrlDeImagen(imageRef, fechaPartido, horaPartido, descripcion, capacidad, precio);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    MainActivity.showToast(crearPartido.this, "Error al subir la imagen: " + e.getMessage());
+                    guardarPartidoEnBaseDeDatos(fechaPartido, horaPartido, descripcion, capacidad, precio, null);
+                }
+            });
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            MainActivity.showToast(crearPartido.this, "Error al obtener el InputStream de la imagen: " + e.getMessage());
+            guardarPartidoEnBaseDeDatos(fechaPartido, horaPartido, descripcion, capacidad, precio, null);
+        }
+    }
+
+
+    private void obtenerUrlDeImagen(StorageReference storageRef, final String fechaPartido, final String horaPartido, final String descripcion, final int capacidad, final double precio) {
+        storageRef.getDownloadUrl()
+                .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        String imageUrl = uri.toString();
+                        guardarPartidoEnBaseDeDatos(fechaPartido, horaPartido, descripcion, capacidad, precio, imageUrl);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        MainActivity.showToast(crearPartido.this, "Error al obtener la URL de la imagen: " + e.getMessage());
+                    }
+                });
+    }
+
+    private void guardarPartidoEnBaseDeDatos(String fechaPartido, String horaPartido, String descripcion, int capacidad, double precio, String imagenUrl) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
 
         if (currentUser != null) {
-            // Obtiene el ID único del usuario actualmente autenticado
             String userId = currentUser.getUid();
 
-            // Crea un nodo "Partidos" en la base de datos y agrega un nuevo partido
             DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("Partidos");
-            String partidoId = databaseRef.push().getKey(); // Obtener un ID único para el partido
+            String partidoId = databaseRef.push().getKey();
 
             Partido partido = new Partido(partidoId, userId, fechaPartido, horaPartido, descripcion, capacidad, precio, imagenUrl, ubicacion);
 
-            // Guarda el partido en la base de datos
             databaseRef.child(partidoId).setValue(partido);
         }
     }
 
-
     public void mostrarTimePickerDialog() {
-        // Obtenemos la hora actual
         Calendar calendar = Calendar.getInstance();
         int hora = calendar.get(Calendar.HOUR_OF_DAY);
         int minuto = calendar.get(Calendar.MINUTE);
 
-        // Crear una instancia de TimePickerDialog y establecer el listener
         TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                 new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                        // Redondear los minutos al múltiplo de 15 más cercano
                         minute = Math.round(minute / 15) * 15;
-                        // Actualizar el TextView con la hora seleccionada
                         String horaSeleccionada = String.format("%02d:%02d", hourOfDay, minute);
-                        et_newTimeMatch.setText(horaSeleccionada);
+                        etHoraPartido.setText(horaSeleccionada);
                     }
                 }, hora, minuto, true);
 
-        // Mostrar el cuadro de diálogo
         timePickerDialog.show();
     }
-
 
     private void mostrarDatePicker() {
         final Calendar calendar = Calendar.getInstance();
@@ -205,10 +227,10 @@ public class crearPartido extends AppCompatActivity {
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                month++; // Month is 0-based in Calendar
+                month++;
                 String fechaSeleccionada = String.format("%02d/%02d/%d", dayOfMonth, month, year);
 
-                et_newFechaMatch.setText(fechaSeleccionada);
+                etFechaPartido.setText(fechaSeleccionada);
 
             }
         }, year, month, day);
@@ -218,47 +240,24 @@ public class crearPartido extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            // Obtener la URI de la imagen seleccionada
             selectedImageUri = data.getData();
 
             tv_image.setText(selectedImageUri.toString());
             tv_image.setVisibility(View.VISIBLE);
 
         } else if (requestCode == REQUEST_SELECT_LOCATION && resultCode == RESULT_OK) {
-            // Extraer la ubicación seleccionada desde el intent data
             latitude = data.getStringExtra("latitude");
             longitude = data.getStringExtra("longitude");
 
-            // Transformar las coordenadas en un objeto LatLng
             ubicacion = latitude + ";" + longitude;
-
-            tv_location.setText(ubicacion.toString());
-            tv_location.setVisibility(View.VISIBLE);
 
             MainActivity.showToast(this, ubicacion);
 
-            // Hacer lo que necesites con la ubicación seleccionada
-            // Por ejemplo, mostrarla en un TextView o guardarla en una variable
         }
     }
-
-
-    /*public long convertStringToDateInMillis(String dateString) {
-        SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
-        try {
-            Date date = sdf.parse(dateString);
-            if (date != null) {
-                return date.getTime();
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }*/
 }

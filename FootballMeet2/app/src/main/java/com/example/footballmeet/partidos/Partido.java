@@ -8,9 +8,9 @@ public class Partido {
     private String descripcion;
     private int capacidad;
     private double precio;
-    private String imagenUrl; // Nuevo campo para almacenar la URL de la imagen
+    private String imagenUrl = null; // Nuevo campo para almacenar la URL de la imagen
 
-    private String ubicacion; // Agrega el campo de ubicación
+    private String ubicacion = null; // Agrega el campo de ubicación
 
     public Partido() {
         // Constructor vacío requerido por Firebase Realtime Database
@@ -27,7 +27,6 @@ public class Partido {
         this.imagenUrl = imagenUrl;
         this.ubicacion = ubicacion;
     }
-
     public String getPartidoId() {
         return partidoId;
     }
